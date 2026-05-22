@@ -59,7 +59,7 @@ def get_header(path: str) -> List[str]:
     :param path: Path to a CSV file.
     :return: A list of strings containing the strings in the comma-separated header.
     """
-    with open(path) as f:
+    with open(path, encoding='utf-8-sig') as f:
         header = next(csv.reader(f))
 
     return header
@@ -77,7 +77,7 @@ def get_smiles(path: str, smiles_column: str = None, header: bool = True) -> Lis
     if smiles_column is not None and not header:
         raise ValueError('If smiles_column is provided, the CSV file must have a header.')
 
-    with open(path) as f:
+    with open(path, encoding='utf-8-sig') as f:
         if header:
             reader = csv.DictReader(f)
             if smiles_column is None:
@@ -104,7 +104,7 @@ def filter_invalid_smiles(data: MoleculeDataset) -> MoleculeDataset:
 
 
 def get_data(path: str,
-             smiles_column: str = 'smiles',
+             smiles_column: str = None,
              target_columns: List[str] = None,
              ignore_columns: List[str] = None,
              skip_invalid_smiles: bool = True,
@@ -159,7 +159,7 @@ def get_data(path: str,
     skip_smiles = set()
 
     # Load data
-    with open(path) as f:
+    with open(path, encoding='utf-8-sig') as f:
         reader = csv.DictReader(f)
         columns = reader.fieldnames
 

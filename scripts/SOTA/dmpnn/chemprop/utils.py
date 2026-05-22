@@ -22,6 +22,29 @@ from chemprop.models import MoleculeModel
 from chemprop.nn_utils import NoamLR
 
 
+def _torch_load(path: str, map_location):
+    try:
+        return torch.load(path, map_location=map_location, weights_only=False)
+    except TypeError:
+        return torch.load(path, map_location=map_location)
+
+
+def _load_train_args(state_args: Namespace) -> TrainArgs:
+    args_dict = vars(state_args).copy()
+    for key in [
+        "crossval_index_sets",
+        "minimize_score",
+        "use_input_features",
+        "num_lrs",
+        "num_tasks",
+    ]:
+        args_dict.pop(key, None)
+
+    args = TrainArgs()
+    args.from_dict(args_dict, skip_unsettable=True)
+    return args
+
+
 def makedirs(path: str, isfile: bool = False) -> None:
     """
     Creates a directory given a path to either a directory or file.
@@ -88,9 +111,8 @@ def load_checkpoint(path: str,
         debug = info = print
 
     # Load model and args
-    state = torch.load(path, map_location=lambda storage, loc: storage)
-    args = TrainArgs()
-    args.from_dict(vars(state['args']), skip_unsettable=True)
+    state = _torch_load(path, map_location=lambda storage, loc: storage)
+    args = _load_train_args(state['args'])
     loaded_state_dict = state['state_dict']
 
     if device is not None:
@@ -133,7 +155,7 @@ def load_scalers(path: str) -> Tuple[StandardScaler, StandardScaler]:
     :return: A tuple with the data :class:`~chemprop.data.scaler.StandardScaler`
              and features :class:`~chemprop.data.scaler.StandardScaler`.
     """
-    state = torch.load(path, map_location=lambda storage, loc: storage)
+    state = _torch_load(path, map_location=lambda storage, loc: storage)
 
     scaler = StandardScaler(state['data_scaler']['means'],
                             state['data_scaler']['stds']) if state['data_scaler'] is not None else None
@@ -151,8 +173,7 @@ def load_args(path: str) -> TrainArgs:
     :param path: Path where model checkpoint is saved.
     :return: The :class:`~chemprop.args.TrainArgs` object that the model was trained with.
     """
-    args = TrainArgs()
-    args.from_dict(vars(torch.load(path, map_location=lambda storage, loc: storage)['args']), skip_unsettable=True)
+    args = _load_train_args(_torch_load(path, map_location=lambda storage, loc: storage)['args'])
 
     return args
 

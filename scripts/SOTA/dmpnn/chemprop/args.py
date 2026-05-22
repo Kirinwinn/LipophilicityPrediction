@@ -109,6 +109,10 @@ class CommonArgs(Tap):
         """Whether to apply normalization with a :class:`~chemprop.data.scaler.StandardScaler` to the additional molecule-level features."""
         return not self.no_features_scaling
 
+    @features_scaling.setter
+    def features_scaling(self, features_scaling: bool) -> None:
+        self.no_features_scaling = not features_scaling
+
     def add_arguments(self) -> None:
         self.add_argument('--gpu', choices=list(range(torch.cuda.device_count())))
         self.add_argument('--features_generator', choices=get_available_features_generators())
@@ -277,20 +281,36 @@ class TrainArgs(CommonArgs):
         """Whether the model should try to minimize the score metric or maximize it."""
         return self.metric in {'rmse', 'mae', 'mse', 'cross_entropy'}
 
+    @minimize_score.setter
+    def minimize_score(self, minimize_score: bool) -> None:
+        pass
+
     @property
     def use_input_features(self) -> bool:
         """Whether the model is using additional molecule-level features."""
         return self.features_generator is not None or self.features_path is not None
+
+    @use_input_features.setter
+    def use_input_features(self, use_input_features: bool) -> None:
+        pass
 
     @property
     def num_lrs(self) -> int:
         """The number of learning rates to use (currently hard-coded to 1)."""
         return 1
 
+    @num_lrs.setter
+    def num_lrs(self, num_lrs: int) -> None:
+        pass
+
     @property
     def crossval_index_sets(self) -> List[List[List[int]]]:
         """Index sets used for splitting data into train/validation/test during cross-validation"""
         return self._crossval_index_sets
+
+    @crossval_index_sets.setter
+    def crossval_index_sets(self, crossval_index_sets: List[List[List[int]]]) -> None:
+        self._crossval_index_sets = crossval_index_sets
 
     @property
     def task_names(self) -> List[str]:
@@ -305,6 +325,10 @@ class TrainArgs(CommonArgs):
     def num_tasks(self) -> int:
         """The number of tasks being trained on."""
         return len(self.task_names) if self.task_names is not None else 0
+
+    @num_tasks.setter
+    def num_tasks(self, num_tasks: int) -> None:
+        self._num_tasks = num_tasks
 
     @property
     def features_size(self) -> int:

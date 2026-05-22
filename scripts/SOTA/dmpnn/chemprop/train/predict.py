@@ -29,6 +29,10 @@ def predict(model: MoleculeModel,
     :return: A list of lists of predictions. The outer list is molecules while the inner list is tasks.
     """
     model.eval()
+    if args is None:
+        args = getattr(model, 'args', None)
+    if args is None:
+        raise ValueError('Prediction args were not provided and could not be read from the model.')
 
     preds = []
 

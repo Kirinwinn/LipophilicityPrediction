@@ -32,6 +32,7 @@ def make_predictions(args: PredictArgs, smiles: List[str] = None) -> List[List[O
     scaler, features_scaler = load_scalers(args.checkpoint_paths[0])
     train_args = load_args(args.checkpoint_paths[0])
     num_tasks, task_names = train_args.num_tasks, train_args.task_names
+    predict_smiles_column = args.smiles_column
 
     # If features were used during training, they must be used when predicting
     if ((train_args.features_path is not None or train_args.features_generator is not None)
@@ -45,6 +46,7 @@ def make_predictions(args: PredictArgs, smiles: List[str] = None) -> List[List[O
     for key, value in vars(train_args).items():
         if not hasattr(args, key):
             setattr(args, key, value)
+    args.smiles_column = predict_smiles_column
     args: Union[PredictArgs, TrainArgs]
 
     print('Loading data')
@@ -104,7 +106,8 @@ def make_predictions(args: PredictArgs, smiles: List[str] = None) -> List[List[O
         model_preds = predict(
             model=model,
             data_loader=test_data_loader,
-            scaler=scaler
+            scaler=scaler,
+            args=args
         )
         sum_preds += np.array(model_preds)
 
